@@ -20,4 +20,6 @@ const options = {
 }
 const items = REDir('./target-path', options)
 console.log(items)
+// withStat: false  => [path, path, ...]
+// withStat: true   => {path: stat, path: stat, ...}
 ```

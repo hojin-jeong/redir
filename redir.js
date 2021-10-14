@@ -1,25 +1,45 @@
 
-const Fs = require('fs')
-const Path = require('path')
+const { existsSync, lstatSync, readdirSync } = require('fs')
+const { isAbsolute, join, normalize, sep } = require('path')
 
-module.exports = function REDir(p, opts = {}) {
-    if (!Fs.existsSync(p) || !Fs.lstatSync(p).isDirectory()) return []
-    p = Path.isAbsolute(p) ? Path.normalize(p) : `.${Path.sep}${Path.normalize(p)}`
-    const tl = [p]
-    const r = opts.withStat ? {} : []
-    while (tl.length) {
-        const tp = tl.shift()
-        const s = Fs.lstatSync(tp)
-        if (s.isDirectory()) tl.unshift(...Fs.readdirSync(tp).map(i => [tp, i].join(Path.sep)))
-        if (p !== tp) {
-            if((!opts.fileOnly && opts.directoryOnly && !s.isDirectory())
-                || (opts.fileOnly && !opts.directoryOnly && s.isDirectory())) continue
-            if(opts.withStat) {
-                r[tp] = s
-            } else {
-                r.push(tp)
-            }
+function pathNormalize(path) {
+    let p = normalize(path)
+    if(!isAbsolute(p)) p = '.' + sep + p
+    return p
+}
+function getAbsolutePath(path) {
+    return isAbsolute(path) ? path : join(__dirname, path)
+}
+function isExists(path) {
+    return existsSync(getAbsolutePath(path))
+}
+function getStat(path) {
+    return lstatSync(getAbsolutePath(path))
+}
+function readDir(path) {
+    return readdirSync(getAbsolutePath(path))
+}
+
+function REDir(path, opts = {}) {
+    path = pathNormalize(path)
+    if(!isExists(path) || !getStat(path).isDirectory()) return []
+    const queue = [path]
+    const result = opts.withStat ? {} : []
+    while (queue.length) {
+        const currentPath = queue.shift()
+        const stat = getStat(currentPath)
+        const isDir = stat.isDirectory()
+        if (isDir) queue.unshift(...readDir(currentPath).map(p => [currentPath, p].join(sep)))
+        if (path !== currentPath) {
+            if((!opts.fileOnly && opts.directoryOnly && !isDir)
+                || (opts.fileOnly && !opts.directoryOnly && isDir)) continue
+            if(opts.withStat)
+                result[currentPath] = stat
+            else
+                result.push(currentPath)
         }
     }
-    return r
+    return result
 }
+
+module.exports = REDir
