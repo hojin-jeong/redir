@@ -12,6 +12,8 @@
 
 ```javascript
 const REDir = require('redir')
+or
+import * as REDir from "redir"
 
 const options = {
     withStat: Boolean,
