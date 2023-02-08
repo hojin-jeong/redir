@@ -44,3 +44,4 @@ function REDir(path, opts = {}) {
 }
 
 module.exports = REDir
+module.exports.default = REDir
