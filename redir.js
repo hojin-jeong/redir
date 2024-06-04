@@ -1,7 +1,7 @@
 
 const { existsSync, lstatSync, readdirSync } = require('fs')
 const { isAbsolute, join, normalize, sep } = require('path')
-const parentModule = Object.values(require.cache).find(m => m.children.filter(child => !!child).includes(module))
+const parentModule = Object.values(require.cache).filter(m => !!m.children).find(m => m.children.includes(module))
 
 function pathNormalize(path) {
     let p = normalize(path)
